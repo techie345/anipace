@@ -1,0 +1,38 @@
+name: Create Tag and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag version (e.g. v1.0.0)'
+        required: true
+        type: string
+      release_name:
+        description: 'Release Title'
+        required: false
+        type: string
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to create tags and releases
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7.0.1
+
+      - name: Create Git Tag and Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ inputs.tag_name }}
+          git push origin ${{ inputs.tag_name }}
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ inputs.tag_name }} \
+            --title "${{ inputs.release_name || inputs.tag_name }}" \
+            --generate-notes
