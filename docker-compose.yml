@@ -1,0 +1,12 @@
+services:
+  anipace:
+    build: .
+    container_name: anipace
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - anipace-data:/app/data
+
+volumes:
+  anipace-data:

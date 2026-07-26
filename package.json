@@ -1,0 +1,17 @@
+{
+  "name": "anipace",
+  "version": "1.0.0",
+  "description": "Anime & manga pace tracker using the AniList API",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "better-sqlite3": "^11.3.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

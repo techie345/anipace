@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>anipace — today's queue</title>
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">アニペース</span>
+      <span class="brand-name">anipace</span>
+    </div>
+    <form id="user-form" class="user-form">
+      <input id="username" type="text" placeholder="AniList username" autocomplete="off" />
+      <button type="submit">Load</button>
+      <button type="button" id="refresh-btn" class="icon-btn" title="Bypass cache and refetch everything">↻ Refresh</button>
+    </form>
+  </header>
+
+  <main id="app">
+    <p class="empty-state" id="intro">
+      Enter your AniList username above. anipace reads your public lists —
+      no login needed.
+    </p>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
