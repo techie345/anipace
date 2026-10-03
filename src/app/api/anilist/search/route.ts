@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { displayTitle, searchMedia } from "@/features/discovery/anilist";
+import {
+  displayTitle,
+  humanize,
+  releaseYear,
+  searchMedia,
+} from "@/features/discovery/anilist";
 
 export async function GET(req: Request) {
   const params = new URL(req.url).searchParams;
@@ -16,6 +21,11 @@ export async function GET(req: Request) {
         total: type === "ANIME" ? m.episodes : m.chapters,
         score: m.averageScore == null ? null : Math.round(m.averageScore / 10),
         description: m.description,
+        genres: m.genres ?? [],
+        format: humanize(m.format),
+        status: humanize(m.status),
+        year: releaseYear(m),
+        siteUrl: m.siteUrl,
       })),
     });
   } catch (e) {

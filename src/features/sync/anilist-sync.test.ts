@@ -28,12 +28,18 @@ describe("status mapping", () => {
 });
 
 describe("score mapping", () => {
-  it("converts 0-10 ↔ 0-100", () => {
+  it("converts local 0-10 → AniList raw 0-100", () => {
     expect(toAniListScore(8)).toBe(80);
     expect(toAniListScore(null)).toBeNull();
-    expect(fromAniListScore(80)).toBe(8);
-    expect(fromAniListScore(0)).toBeNull();
-    expect(fromAniListScore(null)).toBeNull();
+  });
+
+  it("converts AniList formats → local 0-10", () => {
+    expect(fromAniListScore(80, "POINT_100")).toBe(8);
+    expect(fromAniListScore(8.5, "POINT_10_DECIMAL")).toBe(9);
+    expect(fromAniListScore(4, "POINT_5")).toBe(8);
+    expect(fromAniListScore(3, "POINT_3")).toBe(10);
+    expect(fromAniListScore(0, "POINT_100")).toBeNull();
+    expect(fromAniListScore(null, "POINT_100")).toBeNull();
   });
 });
 

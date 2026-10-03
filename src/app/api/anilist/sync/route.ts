@@ -49,7 +49,7 @@ export async function POST(req: Request) {
   try {
     let pulled = 0;
     if (doPull) {
-      const { anime, manga } = await pullViewerLists(token);
+      const { anime, manga, scoreFormat } = await pullViewerLists(token);
       const existing = (await listEntries(uid)) ?? [];
       const byAnilist = new Map(
         existing.filter((e) => e.anilistId != null).map((e) => [e.anilistId as number, e]),
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
             (kind === "manga" ? e.media.chapters : e.media.episodes) ??
             prev?.total ??
             null,
-          score: fromAniListScore(e.scoreRaw) ?? prev?.score ?? null,
+          score: fromAniListScore(e.score, scoreFormat) ?? prev?.score ?? null,
           notes: prev?.notes ?? null,
           anilistId: e.mediaId,
         });

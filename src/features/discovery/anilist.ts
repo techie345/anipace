@@ -22,10 +22,28 @@ export interface AniListMedia {
   chapters: number | null;
   averageScore: number | null; // 0-100
   description: string | null;
+  genres: string[];
+  format: string | null; // TV, MOVIE, MANGA, NOVEL, ...
+  status: string | null; // FINISHED, RELEASING, NOT_YET_RELEASED, ...
+  seasonYear: number | null; // anime only
+  startDate: { year: number | null } | null;
+  siteUrl: string | null;
 }
 
 export function displayTitle(m: AniListMedia) {
   return m.title.english ?? m.title.romaji ?? "Unknown title";
+}
+
+/** "NOT_YET_RELEASED" → "Not yet released". Pass through null/empty. */
+export function humanize(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const s = value.toLowerCase().replace(/_/g, " ");
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** Release year: anime seasonYear, otherwise manga startDate year. */
+export function releaseYear(m: AniListMedia): number | null {
+  return m.seasonYear ?? m.startDate?.year ?? null;
 }
 
 export async function searchMedia(
@@ -39,6 +57,7 @@ export async function searchMedia(
         media(search: $search, type: $type, sort: POPULARITY_DESC) {
           id title { english romaji } coverImage { large }
           episodes chapters averageScore description(asHtml: false)
+          genres format status seasonYear startDate { year } siteUrl
         }
       }
     }`,
