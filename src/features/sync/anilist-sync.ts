@@ -57,16 +57,32 @@ export function fromAniListStatus(
   }
 }
 
-/** Local 0-10 score → AniList raw 0-100. Null stays null. */
+/** AniList raw 0-100 → local 0-10. Null stays null. */
 export function toAniListScore(score: number | null): number | null {
   if (score == null) return null;
   return Math.max(0, Math.min(100, Math.round(score * 10)));
 }
 
-/** AniList raw 0-100 → local 0-10. Handles 0 as null (unscored). */
-export function fromAniListScore(raw: number | null | undefined): number | null {
-  if (raw == null || raw === 0) return null;
-  return Math.max(0, Math.min(10, Math.round((raw / 100) * 10)));
+const SCORE_FORMAT_MAX: Record<string, number> = {
+  POINT_100: 100,
+  POINT_10_DECIMAL: 10,
+  POINT_10: 10,
+  POINT_5: 5,
+  POINT_3: 3,
+};
+
+/**
+ * Authenticated `score` comes back in the viewer's own score format
+ * (see Viewer.mediaListOptions.scoreFormat), so convert using that format's
+ * max. Handles 0/null as unscored. Unknown format assumes 0-10.
+ */
+export function fromAniListScore(
+  score: number | null | undefined,
+  format?: string | null,
+): number | null {
+  if (score == null || score === 0) return null;
+  const max = (format ? SCORE_FORMAT_MAX[format] : undefined) ?? 10;
+  return Math.max(0, Math.min(10, Math.round((score / max) * 10)));
 }
 
 export function buildAuthorizeUrl(args: {
@@ -127,8 +143,12 @@ async function authedGql<T>(
     cache: "no-store",
   });
   if (!res.ok) {
-    if (res.status === 401) throw new Error("AniList token expired — reconnect.");
-    throw new Error(`AniList error: ${res.status}`);
+    // Include a snippet of the body: AniList validation errors explain
+    // the real cause (a bare status like 400 is undebuggable).
+    const detail = (await res.text().catch(() => "")).slice(0, 300);
+    if (res.status === 401)
+      throw new Error(`AniList token expired — reconnect. ${detail}`);
+    throw new Error(`AniList error: ${res.status} ${detail}`);
   }
   const json = (await res.json()) as { data?: T; errors?: { message: string }[] };
   if (json.errors?.length) throw new Error(json.errors[0].message);
@@ -139,7 +159,8 @@ export interface RemoteListEntry {
   mediaId: number;
   status: string;
   progress: number;
-  scoreRaw: number;
+  /** Score float in the viewer's own format — convert with fromAniListScore. */
+  score: number;
   updatedAt?: number;
   media: {
     id: number;
@@ -152,12 +173,11 @@ export interface RemoteListEntry {
 
 /** Pull the viewer's own anime+manga lists using their OAuth token. */
 export async function pullViewerLists(token: string) {
-  const viewer = await authedGql<{ Viewer: { id: number } }>(
-    token,
-    `query { Viewer { id } }`,
-    {},
-  );
+  const viewer = await authedGql<{
+    Viewer: { id: number; mediaListOptions?: { scoreFormat?: string } | null };
+  }>(token, `query { Viewer { id mediaListOptions { scoreFormat } } }`, {});
   const id = viewer.Viewer.id;
+  const scoreFormat = viewer.Viewer.mediaListOptions?.scoreFormat ?? null;
   async function collection(type: "ANIME" | "MANGA") {
     const data = await authedGql<{
       MediaListCollection: {
@@ -168,7 +188,7 @@ export async function pullViewerLists(token: string) {
       `query ($userId: Int, $type: MediaType) {
         MediaListCollection(userId: $userId, type: $type) {
           lists { entries {
-            mediaId status progress scoreRaw: score(raw: true) updatedAt
+            mediaId status progress score updatedAt
             media { id title { english romaji } coverImage { large } episodes chapters }
           } }
         }
@@ -178,7 +198,7 @@ export async function pullViewerLists(token: string) {
     return data.MediaListCollection?.lists.flatMap((l) => l.entries) ?? [];
   }
   const [anime, manga] = await Promise.all([collection("ANIME"), collection("MANGA")]);
-  return { anime, manga };
+  return { anime, manga, scoreFormat };
 }
 
 /** Push one entry to AniList (creates/updates the viewer's list entry). */

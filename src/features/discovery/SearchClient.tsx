@@ -11,6 +11,11 @@ interface SearchResult {
   total: number | null;
   score: number | null;
   description: string | null;
+  genres: string[];
+  format: string | null;
+  status: string | null;
+  year: number | null;
+  siteUrl: string | null;
 }
 
 export default function SearchClient() {
@@ -155,15 +160,48 @@ export default function SearchClient() {
               <div className="min-w-0 flex-1">
                 <h3 className="truncate font-medium">{r.title}</h3>
                 <p className="text-sm text-zinc-400">
+                  {[r.year, r.format, r.status].filter(Boolean).join(" · ") ||
+                    "Details unavailable"}
+                </p>
+                <p className="text-sm text-zinc-400">
                   {r.total ? `${r.total} eps` : "Ongoing/unknown"}
                   {r.score != null ? ` · ★ ${r.score}/10` : ""}
                 </p>
-                <button
-                  onClick={() => addResult(r)}
-                  className="mt-2 rounded bg-indigo-600 px-2 py-1 text-xs font-medium hover:bg-indigo-500"
-                >
-                  + Add to my {tab} list
-                </button>
+                {r.genres.length > 0 && (
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {r.genres.slice(0, 3).map((g) => (
+                      <span
+                        key={g}
+                        className="rounded-full bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300"
+                      >
+                        {g}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {r.description && (
+                  <p className="mt-1 line-clamp-2 text-xs text-zinc-500">
+                    {r.description}
+                  </p>
+                )}
+                <div className="mt-2 flex gap-2">
+                  <button
+                    onClick={() => addResult(r)}
+                    className="rounded bg-indigo-600 px-2 py-1 text-xs font-medium hover:bg-indigo-500"
+                  >
+                    + Add to my {tab} list
+                  </button>
+                  {r.siteUrl && (
+                    <a
+                      href={r.siteUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded px-2 py-1 text-xs text-zinc-400 hover:text-white"
+                    >
+                      AniList ↗
+                    </a>
+                  )}
+                </div>
               </div>
             </li>
           ))}
