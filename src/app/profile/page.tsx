@@ -6,6 +6,7 @@ import {
   statsFor,
 } from "@/lib/db";
 import { userKey } from "@/lib/current-user";
+import AniListSyncControls from "@/features/sync/AniListSyncControls";
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -84,11 +85,7 @@ export default async function ProfilePage() {
           . For 2-way sync,{" "}
           {anilistConnected ? (
             <>
-              your account is linked — use{" "}
-              <a href="/search" className="text-indigo-400 hover:underline">
-                Sync both ways
-              </a>{" "}
-              to pull and push changes.
+              your account is linked — pull, push, or sync both ways below.
             </>
           ) : (
             <>
@@ -104,6 +101,8 @@ export default async function ProfilePage() {
           )}
         </p>
       </div>
+
+      <AniListSyncControls />
 
       <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4 text-sm">
         <h2 className="font-medium">Storage</h2>
