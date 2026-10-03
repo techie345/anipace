@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { auth, signIn } from "@/auth";
+import { auth } from "@/auth";
 
 export default async function Home() {
   const session = await auth();
@@ -25,22 +25,8 @@ export default async function Home() {
           🔍 Search AniList and import your existing lists
         </li>
       </ul>
-      <form
-        className="mt-8"
-        action={async () => {
-          "use server";
-          await signIn("github", { redirectTo: "/dashboard" });
-        }}
-      >
-        <button
-          type="submit"
-          className="rounded-md bg-indigo-600 px-6 py-3 font-medium hover:bg-indigo-500"
-        >
-          Sign in with GitHub to start tracking
-        </button>
-      </form>
-      <p className="mt-4 text-xs text-zinc-500">
-        No database configured yet — your lists are stored in this browser.
+      <p className="mt-8 text-sm text-zinc-400">
+        Sign in above with GitHub or Discord to start tracking.
       </p>
     </div>
   );
