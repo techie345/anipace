@@ -47,19 +47,34 @@ export default async function Navbar() {
               </form>
             </>
           ) : (
-            <form
-              action={async () => {
-                "use server";
-                await signIn("github");
-              }}
-            >
-              <button
-                type="submit"
-                className="rounded-md bg-indigo-600 px-3 py-1.5 font-medium hover:bg-indigo-500"
+            <div className="flex items-center gap-2">
+              <form
+                action={async () => {
+                  "use server";
+                  await signIn("github");
+                }}
               >
-                Sign in with GitHub
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  className="rounded-md bg-indigo-600 px-3 py-1.5 font-medium hover:bg-indigo-500"
+                >
+                  Sign in with GitHub
+                </button>
+              </form>
+              <form
+                action={async () => {
+                  "use server";
+                  await signIn("discord");
+                }}
+              >
+                <button
+                  type="submit"
+                  className="rounded-md bg-[#5865F2] px-3 py-1.5 font-medium hover:brightness-110"
+                >
+                  Sign in with Discord
+                </button>
+              </form>
+            </div>
           )}
         </div>
       </nav>
