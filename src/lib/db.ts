@@ -59,6 +59,8 @@ async function ensureSchema(): Promise<boolean> {
       anilist_id INTEGER,
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+  `;
+  await db`
     CREATE INDEX IF NOT EXISTS entries_user_kind_idx ON entries (user_id, kind);
   `;
   ensured = true;
