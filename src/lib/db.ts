@@ -63,6 +63,26 @@ async function ensureSchema(): Promise<boolean> {
   await db`
     CREATE INDEX IF NOT EXISTS entries_user_kind_idx ON entries (user_id, kind);
   `;
+  await db`
+    CREATE TABLE IF NOT EXISTS anilist_tokens (
+      user_id TEXT PRIMARY KEY,
+      access_token TEXT NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `;
+  // One-time normalization: user keys are now lowercase emails
+  // (see src/lib/current-user.ts), so fold any legacy mixed-case keys.
+  await db`
+    UPDATE entries SET user_id = LOWER(user_id)
+    WHERE user_id LIKE '%@%' AND user_id <> LOWER(user_id);
+  `;
+  await db`
+    UPDATE anilist_tokens SET user_id = LOWER(user_id), updated_at = NOW()
+    WHERE user_id LIKE '%@%' AND user_id <> LOWER(user_id)
+    AND NOT EXISTS (
+      SELECT 1 FROM anilist_tokens t2 WHERE t2.user_id = LOWER(anilist_tokens.user_id)
+    );
+  `;
   ensured = true;
   return true;
 }
@@ -151,4 +171,40 @@ export async function statsFor(
     manga: Number(r.manga),
     completed: Number(r.completed),
   };
+}
+
+export async function saveAnilistToken(
+  userId: string,
+  accessToken: string,
+): Promise<boolean> {
+  const db = client();
+  if (!db) return false;
+  await ensureSchema();
+  await db`
+    INSERT INTO anilist_tokens (user_id, access_token, updated_at)
+    VALUES (${userId}, ${accessToken}, NOW())
+    ON CONFLICT (user_id) DO UPDATE SET
+      access_token = EXCLUDED.access_token, updated_at = NOW();
+  `;
+  return true;
+}
+
+export async function getAnilistToken(
+  userId: string,
+): Promise<string | null> {
+  const db = client();
+  if (!db) return null;
+  await ensureSchema();
+  const rows =
+    await db`SELECT access_token FROM anilist_tokens WHERE user_id = ${userId} LIMIT 1`;
+  if (rows.length === 0) return null;
+  return String((rows[0] as Record<string, unknown>).access_token);
+}
+
+export async function deleteAnilistToken(userId: string): Promise<boolean> {
+  const db = client();
+  if (!db) return false;
+  await ensureSchema();
+  await db`DELETE FROM anilist_tokens WHERE user_id = ${userId}`;
+  return true;
 }

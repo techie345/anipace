@@ -2,12 +2,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { statsFor } from "@/lib/db";
+import { userKey } from "@/lib/current-user";
 
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/");
 
-  const uid = session.user.email ?? session.user.name ?? "local-user";
+  const uid = userKey(session);
   const stats = await statsFor(uid).catch(() => null);
 
   const cards = [

@@ -16,7 +16,7 @@ export default async function ProfilePage() {
           <img src={user.image} alt="" className="h-16 w-16 rounded-full" />
         )}
         <div>
-          <p className="font-medium">{user.name ?? "GitHub user"}</p>
+          <p className="font-medium">{user.name ?? "Signed-in user"}</p>
           <p className="text-sm text-zinc-400">{user.email ?? "No public email"}</p>
         </div>
       </div>
@@ -33,7 +33,11 @@ export default async function ProfilePage() {
           <a href="/search" className="text-indigo-400 hover:underline">
             Search page
           </a>
-          . Full AniList OAuth can be added later.
+          . For 2-way sync, connect via{" "}
+          <a href="/api/anilist/auth" className="text-indigo-400 hover:underline">
+            AniList OAuth
+          </a>{" "}
+          (needs ANILIST_CLIENT_ID/SECRET + database), then use Sync both ways.
         </p>
       </div>
       <form

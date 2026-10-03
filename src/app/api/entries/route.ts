@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { userKey } from "@/lib/current-user";
 import {
   deleteEntry,
   isDbConfigured,
@@ -9,10 +10,6 @@ import {
   type EntryStatus,
   type MediaKind,
 } from "@/lib/db";
-
-function userId(email: string | null | undefined, name: string | null | undefined) {
-  return email ?? name ?? "local-user";
-}
 
 function parseBody(json: unknown): Omit<Entry, "userId" | "updatedAt" | "id"> & { id?: string } {
   const b = json as Record<string, unknown>;
@@ -41,7 +38,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const kind = new URL(req.url).searchParams.get("kind");
   const entries = await listEntries(
-    userId(session.user.email, session.user.name),
+    userKey(session),
     kind === "anime" || kind === "manga" ? kind : undefined,
   );
   return NextResponse.json({ entries });
@@ -54,7 +51,7 @@ export async function POST(req: Request) {
   if (!session?.user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const entry = await upsertEntry(
-    userId(session.user.email, session.user.name),
+    userKey(session),
     parseBody(await req.json()),
   );
   return NextResponse.json({ entry }, { status: 201 });
@@ -67,7 +64,7 @@ export async function PUT(req: Request) {
   if (!session?.user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const entry = await upsertEntry(
-    userId(session.user.email, session.user.name),
+    userKey(session),
     parseBody(await req.json()),
   );
   return NextResponse.json({ entry });
@@ -81,6 +78,6 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const id = new URL(req.url).searchParams.get("id");
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
-  const ok = await deleteEntry(userId(session.user.email, session.user.name), id);
+  const ok = await deleteEntry(userKey(session), id);
   return NextResponse.json({ ok });
 }

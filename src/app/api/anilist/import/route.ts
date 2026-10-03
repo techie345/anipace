@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { displayTitle, importUserLists } from "@/features/discovery/anilist";
 import { upsertEntry, isDbConfigured, type EntryStatus } from "@/lib/db";
+import { userKey } from "@/lib/current-user";
 
 const STATUS_MAP: Record<string, EntryStatus> = {
   CURRENT: "watching",
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
   try {
     const { anime, manga } = await importUserLists(userName.trim());
     const picked = kind === "manga" ? manga : anime;
-    const uid = session.user.email ?? session.user.name ?? "local-user";
+    const uid = userKey(session);
 
     const entries = picked.map((e) => ({
       kind: (kind === "manga" ? "manga" : "anime") as "anime" | "manga",
