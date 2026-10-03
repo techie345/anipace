@@ -11,6 +11,8 @@ import {
   fromAniListStatus,
   pullViewerLists,
   pushEntryToAniList,
+  sleep,
+  PUSH_THROTTLE_MS,
 } from "@/features/sync/anilist-sync";
 import { userKey } from "@/lib/current-user";
 
@@ -48,6 +50,7 @@ export async function POST(req: Request) {
 
   try {
     let pulled = 0;
+    const pulledIds = new Set<number>();
     if (doPull) {
       const { anime, manga, scoreFormat } = await pullViewerLists(token);
       const existing = (await listEntries(uid)) ?? [];
@@ -76,15 +79,27 @@ export async function POST(req: Request) {
           notes: prev?.notes ?? null,
           anilistId: e.mediaId,
         });
+        pulledIds.add(e.mediaId);
         pulled++;
       }
     }
 
     let pushed = 0;
+    let skipped = 0;
     if (doPush) {
       const entries = (await listEntries(uid)) ?? [];
+      let first = true;
       for (const entry of entries) {
         if (entry.anilistId == null) continue;
+        // Just pulled this one from AniList this run, so local already
+        // equals remote — pushing it back would only burn rate limit
+        // (and drift scores through 0-100 → 0-10 → 0-100 rounding).
+        if (doPull && pulledIds.has(entry.anilistId)) {
+          skipped++;
+          continue;
+        }
+        if (!first) await sleep(PUSH_THROTTLE_MS);
+        first = false;
         await pushEntryToAniList(token, {
           anilistId: entry.anilistId,
           status: entry.status,
@@ -96,7 +111,7 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json({ pulled, pushed });
+    return NextResponse.json({ pulled, pushed, skipped });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Sync failed";
     const status = msg.includes("expired") ? 401 : 502;

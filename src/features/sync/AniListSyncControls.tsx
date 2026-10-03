@@ -30,10 +30,16 @@ export default function AniListSyncControls() {
       const json = (await res.json()) as {
         pulled?: number;
         pushed?: number;
+        skipped?: number;
         error?: string;
       };
       if (!res.ok) throw new Error(json.error ?? "Sync failed");
-      setMsg(`Synced — pulled ${json.pulled ?? 0}, pushed ${json.pushed ?? 0}.`);
+      const bits = [
+        `pulled ${json.pulled ?? 0}`,
+        `pushed ${json.pushed ?? 0}`,
+      ];
+      if (json.skipped) bits.push(`skipped ${json.skipped} already in sync`);
+      setMsg(`Synced — ${bits.join(", ")}.`);
     } catch (e) {
       setMsg(e instanceof Error ? e.message : "Sync failed");
     } finally {

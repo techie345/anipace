@@ -7,6 +7,24 @@ export const ANILIST_ENDPOINT = "https://graphql.anilist.co";
 export const ANILIST_AUTH_URL = "https://anilist.co/api/v2/oauth/authorize";
 export const ANILIST_TOKEN_URL = "https://anilist.co/api/v2/oauth/token";
 
+/** AniList allows ~90 requests/minute. Pause this long between mutations. */
+export const PUSH_THROTTLE_MS = 700;
+
+export function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+/** Parse a Retry-After header (seconds) → ms, capped. Null if absent/garbage. */
+export function retryAfterMs(
+  header: string | null,
+  capMs = 15000,
+): number | null {
+  if (header == null) return null;
+  const s = Number(header.trim());
+  if (!Number.isFinite(s) || s < 0) return null;
+  return Math.min(s * 1000, capMs);
+}
+
 type AniListStatus =
   | "CURRENT"
   | "PLANNING"
@@ -131,6 +149,7 @@ async function authedGql<T>(
   token: string,
   query: string,
   variables: Record<string, unknown>,
+  attempt = 0,
 ): Promise<T> {
   const res = await fetch(ANILIST_ENDPOINT, {
     method: "POST",
@@ -142,6 +161,13 @@ async function authedGql<T>(
     body: JSON.stringify({ query, variables }),
     cache: "no-store",
   });
+  // Rate-limited: wait out Retry-After (or a short backoff) and retry twice
+  // before surfacing the 429.
+  if (res.status === 429 && attempt < 2) {
+    await res.text().catch(() => "");
+    await sleep(retryAfterMs(res.headers.get("retry-after")) ?? 1000 * (attempt + 1));
+    return authedGql(token, query, variables, attempt + 1);
+  }
   if (!res.ok) {
     // Include a snippet of the body: AniList validation errors explain
     // the real cause (a bare status like 400 is undebuggable).
