@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   fromAniListScore,
   fromAniListStatus,
+  retryAfterMs,
   toAniListScore,
   toAniListStatus,
   buildAuthorizeUrl,
@@ -40,6 +41,16 @@ describe("score mapping", () => {
     expect(fromAniListScore(3, "POINT_3")).toBe(10);
     expect(fromAniListScore(0, "POINT_100")).toBeNull();
     expect(fromAniListScore(null, "POINT_100")).toBeNull();
+  });
+});
+
+describe("retryAfterMs", () => {
+  it("parses seconds, caps, rejects garbage", () => {
+    expect(retryAfterMs("2")).toBe(2000);
+    expect(retryAfterMs("60", 15000)).toBe(15000);
+    expect(retryAfterMs(null)).toBeNull();
+    expect(retryAfterMs("soon")).toBeNull();
+    expect(retryAfterMs("-1")).toBeNull();
   });
 });
 
