@@ -1,0 +1,46 @@
+# Runs lint + the full vitest suite on every push to main and every PR.
+# Checks out the cinepace sibling next to this repo so the cross-app
+# shared-DB contract tests run instead of skipping (public repos, so no
+# extra token needed). NOTE: the sibling is pinned to main — if cinepace
+# violates the contract there, this workflow correctly goes red.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out anipace
+        uses: actions/checkout@v4
+        with:
+          path: anipace
+
+      - name: Check out cinepace (sibling, for cross-app contract tests)
+        uses: actions/checkout@v4
+        with:
+          repository: techie345/cinepace
+          ref: main
+          path: cinepace
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: anipace/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: anipace
+
+      - name: Lint
+        run: npm run lint
+        working-directory: anipace
+
+      - name: Test
+        run: npm test
+        working-directory: anipace

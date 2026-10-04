@@ -6,6 +6,9 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: { "@": path.resolve(import.meta.dirname, "src") },
+    // Single neon copy so db-contract.test.ts's vi.mock also covers the
+    // sibling repo's db module (which otherwise resolves its own copy).
+    dedupe: ["@neondatabase/serverless"],
   },
   test: {
     environment: "jsdom",
