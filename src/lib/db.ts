@@ -186,7 +186,7 @@ export async function statsFor(
     SELECT
       COUNT(*) FILTER (WHERE kind = 'anime') AS anime,
       COUNT(*) FILTER (WHERE kind = 'manga') AS manga,
-      COUNT(*) FILTER (WHERE status = 'completed') AS completed
+      COUNT(*) FILTER (WHERE status = 'completed' AND kind IN ('anime', 'manga')) AS completed
     FROM entries WHERE user_id = ${userId};
   `;
   const r = rows[0] as Record<string, unknown>;
