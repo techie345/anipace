@@ -20,9 +20,9 @@ describe("userKey", () => {
     expect(userKey(null)).toBe("local-user");
   });
 
-  it("merges providers sharing an email regardless of case", () => {
-    const fromGithub = userKey({ user: { email: "you@mail.com", name: "gh-handle" } });
-    const fromDiscord = userKey({ user: { email: "YOU@mail.com", name: "dc-handle" } });
-    expect(fromDiscord).toBe(fromGithub);
+  it("merges accounts sharing an email regardless of case", () => {
+    const first = userKey({ user: { email: "you@mail.com", name: "handle-a" } });
+    const second = userKey({ user: { email: "YOU@mail.com", name: "handle-b" } });
+    expect(second).toBe(first);
   });
 });
