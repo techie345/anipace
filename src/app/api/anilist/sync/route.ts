@@ -90,6 +90,8 @@ export async function POST(req: Request) {
       const entries = (await listEntries(uid)) ?? [];
       let first = true;
       for (const entry of entries) {
+        // Shared table with cinepace: never push movie/tv rows to AniList.
+        if (entry.kind !== "anime" && entry.kind !== "manga") continue;
         if (entry.anilistId == null) continue;
         // Just pulled this one from AniList this run, so local already
         // equals remote — pushing it back would only burn rate limit

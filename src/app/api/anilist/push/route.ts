@@ -26,7 +26,8 @@ export async function POST(req: Request) {
 
   const entries = (await listEntries(uid)) ?? [];
   const entry = entries.find((e) => e.id === id);
-  if (!entry) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!entry || (entry.kind !== "anime" && entry.kind !== "manga"))
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (entry.anilistId == null)
     return NextResponse.json(
       { error: "Entry has no AniList id — add it via Search first." },
