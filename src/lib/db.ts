@@ -44,11 +44,17 @@ async function ensureSchema(): Promise<boolean> {
   const db = client();
   if (!db) return false;
   if (ensured) return true;
+  // NOTE: this database is shared with the cinepace app (same Neon
+  // project, same tables, users keyed by lowercase Discord email in both
+  // apps). Every schema change here must stay backward compatible:
+  // additive only — never narrow a CHECK, drop a column, or rename
+  // anything. New kinds/columns must use IF NOT EXISTS / additive
+  // migrations so both apps converge no matter which runs first.
   await db`
     CREATE TABLE IF NOT EXISTS entries (
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,
-      kind TEXT NOT NULL CHECK (kind IN ('anime', 'manga')),
+      kind TEXT NOT NULL CHECK (kind IN ('anime', 'manga', 'movie', 'tv')),
       title TEXT NOT NULL,
       cover_url TEXT,
       status TEXT NOT NULL DEFAULT 'plan_to_watch',
@@ -57,11 +63,29 @@ async function ensureSchema(): Promise<boolean> {
       score INTEGER CHECK (score IS NULL OR (score >= 0 AND score <= 10)),
       notes TEXT,
       anilist_id INTEGER,
+      tmdb_id INTEGER,
+      trakt_id INTEGER,
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `;
   await db`
     CREATE INDEX IF NOT EXISTS entries_user_kind_idx ON entries (user_id, kind);
+  `;
+  // Converge pre-existing databases (created by either app) to the shared
+  // contract: widen the kind check and ensure the cross-app id columns.
+  await db`
+    ALTER TABLE entries DROP CONSTRAINT IF EXISTS entries_kind_check;
+  `;
+  await db`
+    ALTER TABLE entries
+      ADD CONSTRAINT entries_kind_check
+      CHECK (kind IN ('anime', 'manga', 'movie', 'tv'));
+  `;
+  await db`
+    ALTER TABLE entries ADD COLUMN IF NOT EXISTS tmdb_id INTEGER;
+  `;
+  await db`
+    ALTER TABLE entries ADD COLUMN IF NOT EXISTS trakt_id INTEGER;
   `;
   await db`
     CREATE TABLE IF NOT EXISTS anilist_tokens (
