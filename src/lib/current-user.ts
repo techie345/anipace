@@ -1,5 +1,5 @@
 // Stable per-user key shared by every server route.
-// Same email on GitHub and Discord → same key → same entries + AniList token.
+// Keyed by canonical email; falls back to name for accounts without email.
 // Deliberately simple (no users/accounts tables): fine for a handful of users.
 
 export function canonicalEmail(email: string): string {

@@ -34,8 +34,7 @@ export default async function ProfilePage() {
             {user.email ?? "No public email"}
           </p>
           <p className="mt-1 text-xs text-zinc-500">
-            Sign in with GitHub or Discord on the same email to share one
-            library.
+            Signed in with Discord.
           </p>
         </div>
         <span className="ml-auto flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-950 px-2.5 py-1 text-xs text-emerald-300">

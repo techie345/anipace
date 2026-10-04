@@ -1,11 +1,11 @@
 # AniPace — Anime & Manga Tracker
 
 Full-stack tracking app built on **Next.js 16** (App Router), **Auth.js v5**
-GitHub + Discord login, and **AniList** search/import/2-way sync. Deploys to Vercel.
+Discord login, and **AniList** search/import/2-way sync. Deploys to Vercel.
 
 ## Features
 
-- GitHub + Discord login/logout (Auth.js v5, JWT sessions — no DB required)
+- Discord login/logout (Auth.js v5, JWT sessions — no DB required)
 - Dashboard, Profile, Anime list, Manga list, Search pages
 - Track status / progress / score / notes per title
 - Search AniList (public GraphQL, no key) and add titles in one click
@@ -20,13 +20,11 @@ GitHub + Discord login, and **AniList** search/import/2-way sync. Deploys to Ver
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in GitHub/Discord OAuth credentials
+cp .env.example .env.local   # fill in Discord OAuth credentials
 npm run dev
 npm test
 ```
 
-GitHub OAuth app: https://github.com/settings/developers → New OAuth App.
-Callback URL: `http://localhost:3000/api/auth/callback/github`.
 Discord app: https://discord.com/developers/applications → OAuth2 → Redirects.
 Add `http://localhost:3000/api/auth/callback/discord` (scopes: identify, email).
 AniList app: https://anilist.co/settings/developer → New Client.
@@ -38,8 +36,6 @@ Generate `AUTH_SECRET` with `npx auth secret`.
 The repo is already linked to a Vercel project — push to deploy.
 Set env vars in Dashboard → Project → Settings → Environment Variables:
 
-- `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET` (prod callback:
-  `https://<your-app>.vercel.app/api/auth/callback/github`)
 - `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET` (prod callback:
   `https://<your-app>.vercel.app/api/auth/callback/discord`)
 - `ANILIST_CLIENT_ID`, `ANILIST_CLIENT_SECRET` (prod redirect:
@@ -54,4 +50,4 @@ Set env vars in Dashboard → Project → Settings → Environment Variables:
 2. `DATABASE_URL` is injected automatically — no code change needed.
    The `entries` table self-creates on first query (`src/lib/db.ts`).
 
-No Blob storage is used (covers hotlink AniList CDN, avatars come from GitHub/Discord).
+No Blob storage is used (covers hotlink AniList CDN, avatars come from Discord).

@@ -26,7 +26,7 @@ export default async function Home() {
         </li>
       </ul>
       <p className="mt-8 text-sm text-zinc-400">
-        Sign in above with GitHub or Discord to start tracking.
+        Sign in with Discord to start tracking.
       </p>
     </div>
   );
