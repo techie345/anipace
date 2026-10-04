@@ -7,6 +7,7 @@ import {
 } from "@/lib/db";
 import { userKey } from "@/lib/current-user";
 import AniListSyncControls from "@/features/sync/AniListSyncControls";
+import ExportButtons from "@/features/export/ExportButtons";
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -102,6 +103,15 @@ export default async function ProfilePage() {
       </div>
 
       <AniListSyncControls />
+
+      <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4 text-sm">
+        <h2 className="font-medium">Download your data</h2>
+        <p className="mt-1 text-zinc-400">
+          Export your anime and manga list as JSON or CSV — works whether
+          your lists live in the database or this browser.
+        </p>
+        <ExportButtons />
+      </div>
 
       <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4 text-sm">
         <h2 className="font-medium">Storage</h2>
